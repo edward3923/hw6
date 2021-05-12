@@ -16,7 +16,7 @@ exports.handler = async function(event) {
   let moviesFromCsv = await csv(moviesFile)
 
   // write the movies to the back-end console, check it out
-  console.log(moviesFromCsv)
+  //console.log(moviesFromCsv)
 
   // 🔥 hw6: your recipe and code starts here!
   let year = event.queryStringParameters.year
@@ -25,7 +25,7 @@ exports.handler = async function(event) {
   if (year == undefined || genre == undefined) {
     return {
       statusCode: 200, // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-      body: `Nope!` // a string of data
+      body: `Please provide the correct querystring parameters!` // a string of data
     }
   }
   else {
@@ -34,14 +34,43 @@ exports.handler = async function(event) {
       movies: []
     }
 
+
     for (let i=0; i < moviesFromCsv.length; i++) {
+
+      let selectedMovie = moviesFromCsv[i]
+      
+      // Create an empty object that will hold the matched movies' details
+      let moviesMatched = {}
+
+      // Ignore any results with no genre or movies with no runtime
+      if (selectedMovie.genre == "\\N" || selectedMovie.runtimeMinutes == "\\N") {
+        // Do nothing if genre or runtimeMinutes is null
+      }
+
+      // Check to see if the year and genre matches
+      else if (selectedMovie.startYear == year && selectedMovie.genres.includes(genre)) {
+        
+        // If there is a match, create an object containing the correct details
+        moviesMatched = {
+            primaryTitle: selectedMovie.primaryTitle,
+            startYear: selectedMovie.startYear,
+            genres: selectedMovie.genres
+        }
+
+      // Push the matched movie object to the return value
+      returnValue.movies.push(moviesMatched)
+
+      // Increment the number of results return value
+      returnValue.numResults++
+      
+      }
 
     }
 
     // a lambda function returns a status code and a string of data
     return {
       statusCode: 200, // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-      body: `Hello from the back-end!` // a string of data
+      body: JSON.stringify(returnValue) // return resulting JSON which includes two key-value pairs
     }
   }
 }
